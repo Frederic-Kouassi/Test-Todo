@@ -20,13 +20,7 @@ Utilise **Conventional Commits** à chaque commit :
 | `style`  | Mise en forme, design, CSS                    | `style: nouveau dégradé et police plus grande` |
 | `chore`  | Tâches diverses (config, dépendances…)        | `chore: mise à jour des dépendances`         |
 
-➡️ **Format obligatoire** :
-```git
-<type>: <description courte en français>
 
-<description plus détaillée si besoin>
-
-``
 
 ## 🌦️ Améliorations – Application Météo
 
