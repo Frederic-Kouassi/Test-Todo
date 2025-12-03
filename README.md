@@ -26,10 +26,7 @@ Utilise **Conventional Commits** à chaque commit :
 
 <description plus détaillée si besoin>
 
-feat: ajout des suggestions de villes en temps réel
-feat: implémentation du LocalStorage pour la dernière ville
-style: redesign complet de la carte météo avec dégradés
-fix: correction erreur 404 quand ville non trouvée
+``
 
 ## 🌦️ Améliorations – Application Météo
 
