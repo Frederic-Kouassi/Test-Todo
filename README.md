@@ -8,6 +8,20 @@ Nom : `feature/nom-de-la-fonctionnalite`
 Ensuite crée un **Pull Request (PR)** puis **ne fusionne surtout pas !**  
 ➡️ **Tague-moi** pour review (@ton-pseudo), je vérifierai avant de merger.
 
+### 📏 Règles de commit (OBLIGATOIRES)
+
+Utilise **Conventional Commits** à chaque commit :
+
+| Type     | Quand l’utiliser                              | Exemple                                      |
+|----------|-----------------------------------------------|----------------------------------------------|
+| `feat`   | Nouvelle fonctionnalité                       | `feat: ajout du bouton de recherche`         |
+| `fix`    | Correction de bug                             | `fix: correction affichage température négative` |
+| `refactor` | Refonte de code sans changement de comportement | `refactor: extraction composant WeatherCard` |
+| `style`  | Mise en forme, design, CSS                    | `style: nouveau dégradé et police plus grande` |
+| `chore`  | Tâches diverses (config, dépendances…)        | `chore: mise à jour des dépendances`         |
+
+
+
 ## 🌦️ Améliorations – Application Météo
 
 - [ ] Ajouter un bouton de recherche  
