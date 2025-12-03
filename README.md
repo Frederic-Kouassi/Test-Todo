@@ -8,6 +8,29 @@ Nom : `feature/nom-de-la-fonctionnalite`
 Ensuite crée un **Pull Request (PR)** puis **ne fusionne surtout pas !**  
 ➡️ **Tague-moi** pour review (@ton-pseudo), je vérifierai avant de merger.
 
+### 📏 Règles de commit (OBLIGATOIRES)
+
+Utilise **Conventional Commits** à chaque commit :
+
+| Type     | Quand l’utiliser                              | Exemple                                      |
+|----------|-----------------------------------------------|----------------------------------------------|
+| `feat`   | Nouvelle fonctionnalité                       | `feat: ajout du bouton de recherche`         |
+| `fix`    | Correction de bug                             | `fix: correction affichage température négative` |
+| `refactor` | Refonte de code sans changement de comportement | `refactor: extraction composant WeatherCard` |
+| `style`  | Mise en forme, design, CSS                    | `style: nouveau dégradé et police plus grande` |
+| `chore`  | Tâches diverses (config, dépendances…)        | `chore: mise à jour des dépendances`         |
+
+➡️ **Format obligatoire** :
+```git
+<type>: <description courte en français>
+
+<description plus détaillée si besoin>
+
+feat: ajout des suggestions de villes en temps réel
+feat: implémentation du LocalStorage pour la dernière ville
+style: redesign complet de la carte météo avec dégradés
+fix: correction erreur 404 quand ville non trouvée
+
 ## 🌦️ Améliorations – Application Météo
 
 - [ ] Ajouter un bouton de recherche  
