@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Projet – API </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-blue-50 min-h-screen p-6">
+
+  <h1 class="text-3xl font-bold text-center mb-6"> Recherche Météo</h1>
+
+  <div class="max-w-md mx-auto mb-6">
+    <input id="cityInput" type="text" placeholder="Tape une ville… (Paris, Tokyo, Madrid)"
+      class="w-full p-3 rounded border shadow">
+  </div>
+
+  <div id="result" class="max-w-md mx-auto"></div>
+
+  <script>
+    const input = document.getElementById("cityInput");
+    const result = document.getElementById("result");
+
+    input.addEventListener("input", () => {
+      const city = input.value.trim();
+      if (city.length > 2) fetchWeather(city);
+      else result.innerHTML = "";
+    });
+
+    async function fetchWeather(city) {
+      try {
+        
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=fr&format=json`
+        );
+
+        const geoData = await geoRes.json();
+
+        
+        if (!geoData.results || geoData.results.length === 0) {
+          throw new Error("Ville introuvable.");
+        }
+
+        const place = geoData.results[0];
+        const { name, country, latitude, longitude } = place;
+
+        
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`
+        );
+
+        const weatherData = await weatherRes.json();
+
+        if (!weatherData.current_weather) {
+          throw new Error("Impossible d’obtenir la météo.");
+        }
+
+        const weather = weatherData.current_weather;
+
+        displayWeather(name, country, weather);
+
+      } catch (error) {
+        result.innerHTML = `
+          <p class="text-red-600 text-center font-bold">${error.message}</p>
+        `;
+      }
+    }
+
+   
+    
+ 
+    function displayWeather(city, country, weather) {
+      const descriptions = {
+        0: "Ciel clair",
+        1: "Principalement clair",
+        2: "Partiellement nuageux",
+        3: "Couvert",
+        45: "Brouillard",
+        48: "Brouillard givrant",
+        51: "Bruine légère",
+        61: "Pluie faible",
+        63: "Pluie modérée",
+        71: "Chute de neige faible",
+        80: "Averses légères",
+        95: "Orage",
+      };
+
+      const temp = weather.temperature;
+      const wind = weather.windspeed;
+      const code = weather.weathercode;
+
+      result.innerHTML = `
+        <div class="bg-white p-6 rounded shadow text-center">
+          <h2 class="text-2xl font-bold">${city} (${country})</h2>
+          <p class="text-gray-500 mb-4">${descriptions[code] || "Météo inconnue"}</p>
+
+          <p class="text-4xl font-bold mb-4">${temp}°C</p>
+          <p><strong>Vent :</strong> ${wind} km/h</p>
+        </div>
+      `;
+    }
+  </script>
+
+</body>
+</html>
