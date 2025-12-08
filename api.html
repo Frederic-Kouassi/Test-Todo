@@ -2,75 +2,77 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Projet – API </title>
+  <title>Projet – Météo</title>
   <script src="https://cdn.tailwindcss.com"></script>
-   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-blue-50 min-h-screen p-6">
 
-  <h1 class="text-3xl font-bold text-center mb-6"> Recherche Météo</h1>
+  <h1 class="text-3xl font-bold text-center mb-6">Recherche Météo</h1>
 
-  <div class="max-w-md mx-auto mb-6">
-    <input id="cityInput" type="text" placeholder="Tape une ville… (Paris, Tokyo, Madrid)"
-      class="w-full p-3 rounded border shadow">
+  <div class="max-w-md mx-auto mb-6 flex gap-2">
+    <input id="villeInput" type="text" placeholder="Tape une ville… (Côte d'Ivoire, France)"
+      class="flex-1 p-3 arrondi bordure ombre">
+    <button id="Recherche" class="px-4 py-2 bg-blue-600 text-white arrondi hover:bg-blue-700 transition">
+      Recherche
+    </button>
   </div>
 
-  <div id="result" class="max-w-md mx-auto"></div>
+  <div id="resultat" class="max-w-md mx-auto"></div>
 
   <script>
-    const input = document.getElementById("cityInput");
-    const result = document.getElementById("result");
+    const champVille = document.getElementById("villeInput");
+    const zoneResultat = document.getElementById("resultat");
+    const bouton = document.getElementById("Recherche");
 
-    input.addEventListener("input", () => {
-      const city = input.value.trim();
-      if (city.length > 2) fetchWeather(city);
-      else result.innerHTML = "";
+    // Recherche uniquement lors du clic sur le bouton
+    bouton.addEventListener("click", () => {
+      const ville = champVille.value.trim();
+      if (ville.length > 0) {
+        rechercherMeteo(ville);
+      } else {
+        zoneResultat.innerHTML = "<p class='text-red-600 text-center font-bold'> saisir d'abord une ville.</p>";
+      }
     });
 
-    async function fetchWeather(city) {
+    async function rechercherMeteo(ville) {
       try {
-        
-        const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=fr&format=json`
+        const reponseGeo = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${ville}&count=1&language=fr&format=json`
         );
 
-        const geoData = await geoRes.json();
+        const donneesGeo = await reponseGeo.json();
 
-        
-        if (!geoData.results || geoData.results.length === 0) {
+        if (!donneesGeo.results || donneesGeo.results.length === 0) {
           throw new Error("Ville introuvable.");
         }
 
-        const place = geoData.results[0];
-        const { name, country, latitude, longitude } = place;
+        const lieu = donneesGeo.results[0];
+        const { name, country, latitude, longitude } = lieu;
 
-        
-        const weatherRes = await fetch(
+        const reponseMeteo = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`
         );
 
-        const weatherData = await weatherRes.json();
+        const donneesMeteo = await reponseMeteo.json();
 
-        if (!weatherData.current_weather) {
+        if (!donneesMeteo.current_weather) {
           throw new Error("Impossible d’obtenir la météo.");
         }
 
-        const weather = weatherData.current_weather;
+        const meteo = donneesMeteo.current_weather;
 
-        displayWeather(name, country, weather);
+        afficherMeteo(name, country, meteo);
 
-      } catch (error) {
-        result.innerHTML = `
-          <p class="text-red-600 text-center font-bold">${error.message}</p>
+      } catch (erreur) {
+        zoneResultat.innerHTML = `
+          <p class="text-red-600 text-center font-bold">${erreur.message}</p>
         `;
       }
     }
 
-   
-    
- 
-    function displayWeather(city, country, weather) {
+    function afficherMeteo(ville, pays, meteo) {
       const descriptions = {
         0: "Ciel clair",
         1: "Principalement clair",
@@ -85,19 +87,17 @@
         80: "Averses légères",
         95: "Orage",
       };
-      
 
-      const temp = weather.temperature;
-      const wind = weather.windspeed;
-      const code = weather.weathercode;
+      const temperature = meteo.temperature;
+      const vent = meteo.windspeed;
+      const code = meteo.weathercode;
 
-      result.innerHTML = `
-        <div class="bg-white p-6 rounded shadow text-center">
-          <h2 class="text-2xl font-bold">${city} (${country})</h2>
+      zoneResultat.innerHTML = `
+        <div class="bg-white p-6 arrondi ombre text-center">
+          <h2 class="text-2xl font-bold">${ville} (${pays})</h2>
           <p class="text-gray-500 mb-4">${descriptions[code] || "Météo inconnue"}</p>
-
-          <p class="text-4xl font-bold mb-4">${temp}°C</p>
-          <p><strong>Vent :</strong> ${wind} km/h</p>
+          <p class="text-4xl font-bold mb-4">${temperature}°C</p>
+          <p><strong>Vent :</strong> ${vent} km/h</p>
         </div>
       `;
     }
