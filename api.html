@@ -5,43 +5,85 @@
   <title>Projet – Météo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    
+  </style>
 </head>
 
 <body class="bg-blue-50 min-h-screen p-6">
 
   <h1 class="text-3xl font-bold text-center mb-6">Recherche Météo</h1>
 
-  <div class="max-w-md mx-auto mb-6 flex gap-2">
-    <input id="villeInput" type="text" placeholder="Tape une ville… (Côte d'Ivoire, France)"
-      class="flex-1 p-3 arrondi bordure ombre">
-    <button id="Recherche" class="px-4 py-2 bg-blue-600 text-white arrondi hover:bg-blue-700 transition">
+  <div class="max-w-md mx-auto mb-6 relative">
+    <input id="ville" type="text" placeholder="Tape une ville… (Côte d'Ivoire, France)"
+           class="flex-1 p-3 arrondi bordure ombre w-full">
+    <ul id="Suggestions" class="absolute bg-white border arrondi w-full mt-1 z-10"></ul>
+    <button id="Recherche" class="mt-2 px-4 py-2 bg-blue-600 text-white arrondi hover:bg-blue-700 transition w-full">
       Recherche
     </button>
   </div>
 
-  <div id="resultat" class="max-w-md mx-auto"></div>
+  <div id="Resultat" class="max-w-md mx-auto"></div>
 
   <script>
-    const champVille = document.getElementById("villeInput");
-    const zoneResultat = document.getElementById("resultat");
-    const bouton = document.getElementById("Recherche");
+    const champVille = document.getElementById("ville");
+    const listeSuggestions = document.getElementById("Suggestions");
+    const boutonRecherche = document.getElementById("Recherche");
+    const zoneResultat = document.getElementById("Resultat");
 
-    // Recherche uniquement lors du clic sur le bouton
-    bouton.addEventListener("click", () => {
-      const ville = champVille.value.trim();
-      if (ville.length > 0) {
-        rechercherMeteo(ville);
-      } else {
-        zoneResultat.innerHTML = "<p class='text-red-600 text-center font-bold'> saisir d'abord une ville.</p>";
+    // affichage des suggestion pendant la saisie
+    champVille.addEventListener("input", async () => {
+      const texte = champVille.value.trim();
+      if (texte.length < 2) {
+        listeSuggestions.innerHTML = "";
+        return;
+      }
+
+      try {
+        const reponse = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${texte}&count=5&language=fr&format=json`
+        );
+        const donnees = await reponse.json();
+
+        if (!donnees.results) {
+          listeSuggestions.innerHTML = "";
+          return;
+        }
+
+        listeSuggestions.innerHTML = donnees.results
+          .map(ville => `<li class="p-2 suggestion-item">${ville.name}, ${ville.country}</li>`)
+          .join("");
+
+        document.querySelectorAll(".suggestion-item").forEach(item => {
+          item.addEventListener("click", () => {
+            champVille.value = item.textContent;
+            listeSuggestions.innerHTML = "";
+          });
+        });
+
+      } catch (erreur) {
+        listeSuggestions.innerHTML = "";
+        console.log("Erreur suggestions :", erreur);
       }
     });
 
+    // Recherche uniquement lors du clic sur le bouton
+    boutonRecherche.addEventListener("click", () => {
+      const ville = champVille.value.trim();
+      if (ville.length > 0) {
+        rechercherMeteo(ville);
+        listeSuggestions.innerHTML = "";
+      } else {
+        zoneResultat.innerHTML = "<p class='text-red-600 text-center font-bold'>Veuillez saisir une ville.</p>";
+      }
+    });
+
+    
     async function rechercherMeteo(ville) {
       try {
         const reponseGeo = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${ville}&count=1&language=fr&format=json`
         );
-
         const donneesGeo = await reponseGeo.json();
 
         if (!donneesGeo.results || donneesGeo.results.length === 0) {
@@ -54,24 +96,20 @@
         const reponseMeteo = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`
         );
-
         const donneesMeteo = await reponseMeteo.json();
 
         if (!donneesMeteo.current_weather) {
           throw new Error("Impossible d’obtenir la météo.");
         }
 
-        const meteo = donneesMeteo.current_weather;
-
-        afficherMeteo(name, country, meteo);
+        afficherMeteo(name, country, donneesMeteo.current_weather);
 
       } catch (erreur) {
-        zoneResultat.innerHTML = `
-          <p class="text-red-600 text-center font-bold">${erreur.message}</p>
-        `;
+        zoneResultat.innerHTML = `<p class="text-red-600 text-center font-bold">${erreur.message}</p>`;
       }
     }
 
+    
     function afficherMeteo(ville, pays, meteo) {
       const descriptions = {
         0: "Ciel clair",
