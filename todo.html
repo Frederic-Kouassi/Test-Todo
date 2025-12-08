@@ -3,56 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste de tâches</title>
 
-    <title>To-Do List</title>
-
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
-
- 
-</head>
-
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-
-    <div class="container bg-white shadow-xl rounded-xl p-6 w-full max-w-md">
-
-        <h2 class="text-3xl font-bold text-blue-600 mb-6 text-center">To-Do List</h2>
-
-        <div class="flex gap-3">
-            <input id="taskInput"
-                   type="text"
-                   placeholder="Nouvelle tâche..."
-                   class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-            <button onclick="addTask()"
-                class="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
-                Ajouter
-            </button>
-        </div>
-
-        <ul id="taskList" class="mt-6 space-y-3"></ul>
-    </div>
-
+    <!-- Config Tailwind -->
     <script>
-        function addTask() {
-            const input = document.getElementById("taskInput");
-            const text = input.value.trim();
-            if (text === "") return;
-
-            const li = document.createElement("li");
-            li.className = "flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow";
-
-            li.innerHTML = `
-                <span class="text-gray-700">${text}</span>
-                <span class="delete text-red-600 font-bold cursor-pointer hover:text-red-800"
-                      onclick="this.parentElement.remove()">X</span>
-            `;
-
-            document.getElementById("taskList").appendChild(li);
-            input.value = "";
+        tailwind.config = {
+            darkMode: "class"
         }
     </script>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-6 flex justify-center">
+
+<div class="container w-full max-w-2xl bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-3xl font-bold text-blue-600 dark:text-blue-400">Liste de tâches</h2>
+
+        <button id="boutonModeSombre" type="button"
+                class="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+             Mode sombre
+        </button>
+    </div>
+
+    
+    <div class="flex gap-3 mb-4">
+        <input id="entreeTache" type="text" placeholder="Nouvelle tâche..."
+               class="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+
+        <select id="choixPriorite"
+                class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+            <option value="haute">Haute</option>
+            <option value="moyenne" selected>Moyenne</option>
+            <option value="basse">Basse</option>
+        </select>
+
+        <button id="boutonAjouter" type="button"
+                class="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
+            Ajouter
+        </button>
+    </div>
+
+    
+    <div class="flex flex-col gap-3 mb-4">
+        <input id="entreeRecherche" type="text" placeholder="Rechercher..."
+               class="p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+
+        <div class="flex gap-2 flex-wrap">
+            <button class="bouton-filtre px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded" data-filtre="toutes">Toutes</button>
+            <button class="bouton-filtre px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded" data-filtre="haute">Haute</button>
+            <button class="bouton-filtre px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded" data-filtre="moyenne">Moyenne</button>
+            <button class="bouton-filtre px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded" data-filtre="basse">Basse</button>
+        </div>
+    </div>
+
+    
+    <ul id="listeTaches" class="space-y-3"></ul>
+
+    
+    <div class="flex justify-between items-center mt-6">
+        <span id="statistiques" class="text-gray-700 dark:text-gray-300"></span>
+
+        <button id="boutonSupprimerTerminees" type="button"
+                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition">
+            Supprimer complétées
+        </button>
+    </div>
+</div>
+
+
+<div id="fenetreConfirmation" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-80">
+        <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">Confirmer la suppression ?</h3>
+
+        <div class="flex justify-end gap-3">
+            <button id="boutonAnnuler" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded">Annuler</button>
+            <button id="boutonConfirmer" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// --- Sélecteurs ---
+const entreeTache = document.getElementById("entreeTache");
+const choixPriorite = document.getElementById("choixPriorite");
+const boutonAjouter = document.getElementById("boutonAjouter");
+const listeTaches = document.getElementById("listeTaches");
+const entreeRecherche = document.getElementById("entreeRecherche");
+const statistiques = document.getElementById("statistiques");
+const boutonSupprimerTerminees = document.getElementById("boutonSupprimerTerminees");
+const boutonModeSombre = document.getElementById("boutonModeSombre");
+
+const fenetreConfirmation = document.getElementById("fenetreConfirmation");
+const boutonAnnuler = document.getElementById("boutonAnnuler");
+const boutonConfirmer = document.getElementById("boutonConfirmer");
+
+let taches = JSON.parse(localStorage.getItem("taches")) || [];
+let tacheASupprimer = null;
+let filtreActif = "toutes";
+
+
+// --- Affichage ---
+function afficherTaches() {
+    listeTaches.innerHTML = "";
+
+    let tachesFiltrees = taches
+        .filter(t => t.texte.toLowerCase().includes(entreeRecherche.value.toLowerCase()))
+        .filter(t => filtreActif === "toutes" ? true : t.priorite === filtreActif);
+
+    tachesFiltrees.forEach((tache, index) => {
+        const li = document.createElement("li");
+        li.dataset.index = index;
+        li.draggable = true;
+
+        li.className = "flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg shadow";
+
+        li.innerHTML = `
+            <div class="flex gap-2 items-center w-full">
+
+                <input type="checkbox" class="etat-tache" ${tache.etat === "terminee" ? "checked" : ""}>
+
+                <input type="text" class="texte-tache flex-1 bg-transparent dark:text-white"
+                       value="${tache.texte}">
+
+                <select class="select-priorite px-2 py-1 rounded text-white text-sm
+                    ${tache.priorite === "haute" ? "bg-red-600" : 
+                       tache.priorite === "moyenne" ? "bg-yellow-500" : "bg-green-600"}">
+
+                    <option value="haute" ${tache.priorite === "haute" ? "selected" : ""}>Haute</option>
+                    <option value="moyenne" ${tache.priorite === "moyenne" ? "selected" : ""}>Moyenne</option>
+                    <option value="basse" ${tache.priorite === "basse" ? "selected" : ""}>Basse</option>
+                </select>
+
+                <span class="supprimer-tache text-red-600 cursor-pointer font-bold ml-2">X</span>
+            </div>
+        `;
+
+        listeTaches.appendChild(li);
+    });
+
+    mettreAJourStatistiques();
+    sauvegarder();
+}
+
+
+
+boutonAjouter.addEventListener("click", () => {
+    const texte = entreeTache.value.trim();
+    const priorite = choixPriorite.value;
+
+    if (!texte) return;
+
+    taches.push({
+        texte,
+        etat: "active",
+        priorite
+    });
+
+    entreeTache.value = "";
+    choixPriorite.value = "moyenne";
+
+    afficherTaches();
+});
+
+
+
+listeTaches.addEventListener("click", e => {
+    if (e.target.classList.contains("supprimer-tache")) {
+        tacheASupprimer = parseInt(e.target.closest("li").dataset.index);
+        fenetreConfirmation.classList.remove("hidden");
+    }
+});
+
+boutonConfirmer.addEventListener("click", () => {
+    taches.splice(tacheASupprimer, 1);
+    tacheASupprimer = null;
+    fenetreConfirmation.classList.add("hidden");
+    afficherTaches();
+});
+
+boutonAnnuler.addEventListener("click", () => {
+    fenetreConfirmation.classList.add("hidden");
+    tacheASupprimer = null;
+});
+
+
+
+listeTaches.addEventListener("input", e => {
+    if (e.target.classList.contains("texte-tache")) {
+        const index = e.target.closest("li").dataset.index;
+        taches[index].texte = e.target.value;
+        sauvegarder();
+    }
+});
+
+listeTaches.addEventListener("change", e => {
+    const index = e.target.closest("li").dataset.index;
+
+    if (e.target.classList.contains("etat-tache")) {
+        taches[index].etat = e.target.checked ? "terminee" : "active";
+    }
+
+    if (e.target.classList.contains("select-priorite")) {
+        taches[index].priorite = e.target.value;
+    }
+
+    afficherTaches();
+});
+
+
+entreeRecherche.addEventListener("input", afficherTaches);
+
+
+boutonSupprimerTerminees.addEventListener("click", () => {
+    taches = taches.filter(t => t.etat !== "terminee");
+    afficherTaches();
+});
+
+
+boutonModeSombre.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+});
+
+
+
+document.querySelectorAll(".bouton-filtre").forEach(bouton => {
+    bouton.addEventListener("click", () => {
+        filtreActif = bouton.dataset.filtre;
+        afficherTaches();
+    });
+});
+
+
+
+function mettreAJourStatistiques() {
+    const total = taches.length;
+    const terminees = taches.filter(t => t.etat === "terminee").length;
+
+    statistiques.textContent = `${terminees} terminée(s) / ${total}`;
+}
+
+
+
+function sauvegarder() {
+    localStorage.setItem("taches", JSON.stringify(taches));
+}
+
+
+
+afficherTaches();
+</script>
 
 </body>
 </html>
